@@ -71,7 +71,7 @@ windows-system-info-collector/
 Module contracts:
 
 - `probe.collect_raw(timeout=60) -> ProbeResult(data: dict, error: str | None)`. Runs exactly one `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command <script>`; the script sets console output encoding to UTF-8, wraps each section in `try/catch`, emits a single hashtable via `ConvertTo-Json -Depth 6 -Compress`. Parse with `json.loads` after stripping a UTF-8 BOM. Never raises; failures land in `ProbeResult.error` and in `SystemReport.errors`.
-- `collect.build_report(raw: dict) -> SystemReport`. Uses stdlib (`platform`, `socket`, `ctypes` disk fallback) for OS/hostname and as a fallback for disks if the probe produced none. Pure function over its inputs; no I/O. Redaction is applied afterwards by `redact.apply`.
+- `collect.build_report(raw: dict, errors: tuple[str, ...] = ()) -> SystemReport`. Uses stdlib (`platform`, `socket`, `ctypes` disk fallback) for OS/hostname and as a fallback for disks if the probe produced none. Pure function over its inputs; no I/O. Redaction is applied afterwards by `redact.apply`.
 - `health.evaluate(report) -> (checks: list[Check], score: int)`.
 - `redact.apply(report) -> SystemReport` (mutates a copy; sets `redacted=True`).
 - `render.render(report, fmt: str) -> str` for `text|json|md|html`.
@@ -91,10 +91,10 @@ Module contracts:
 | `gpus` | `list[GpuInfo(name, vram_bytes, driver)]` | `Win32_VideoController` |
 | `disks` | `list[DiskInfo(mount, filesystem, total_bytes, free_bytes, percent_used)]` | `Win32_LogicalDisk` (DriveType=3), `ctypes` fallback |
 | `network` | `NetworkInfo(adapters[])` where adapter = `(name, ipv4[], gateway[], mac, dhcp)` | `Win32_NetworkAdapterConfiguration` |
-| `bios` | `BiosInfo(vendor, version, release_date, serial)` | `Win32_BIOS` + `Win32_BaseBoard` |
+| `bios` | `BiosInfo(vendor, board, version, release_date, serial)` | `Win32_BIOS` + `Win32_BaseBoard` |
 | `security` | `SecurityInfo(tpm, secure_boot, defender, bitlocker)` | CIM + cmdlets (see below) |
 | `hotfixes` | `HotfixInfo(count, newest_date, ids[])` | `Win32_QuickFixEngineering` |
-| `battery` | `BatteryInfo(percent, charging) \| None` | `Win32_Battery` |
+| `battery` | `BatteryInfo(percent, charging) \| None` (`charging` = `BatteryStatus` in 2, 6–9) | `Win32_Battery` |
 | `uptime_seconds` | int | `LastBootUpTime` |
 | `checks` | `list[Check(id, status, title, detail, fix)]` | `health` |
 | `health_score` | int 0–100 | `health` |
@@ -168,8 +168,8 @@ winsysinfo [--format text,json,md,html] [--out DIR] [--include-sensitive]
 
 - Default: `--format text --out .`; files named `system_info_report_YYYYmmdd_HHMMSS.<ext>`.
 - Report is printed to stdout unless `-q`.
-- `-q` still prints the saved paths to stderr.
-- Exit codes: `0` success; `1` completed with `report.errors`; `2` fatal (non-Windows, probe produced nothing parseable).
+- Saved paths always go to stderr, so stdout stays pipeable for any single `--format`.
+- Exit codes: `0` success; `1` completed but `report.errors` is non-empty; `2` fatal (non-Windows, unknown format, or unwritable `--out`). A failed probe is not fatal: the report degrades to stdlib facts and exits `1`.
 - Pause on "Press Enter to exit" only when `len(sys.argv) == 1 and sys.stdin.isatty()` (preserves double-click behavior).
 - Non-Windows: print a clear message to stderr, exit 2.
 
