@@ -2,10 +2,6 @@
 
 Collect Windows hardware/OS/security facts, get a 0–100 health score, and export a report as text, JSON, Markdown or a self-contained HTML page. No external dependencies — just Python 3.11+ and the PowerShell that ships with Windows.
 
-## Why this rewrite
-
-The v1 script scraped `wmic` and `ipconfig` text. `wmic` is gone from Windows 11 24H2+, `ipconfig` output is localized, and most failures were swallowed by bare `except:` blocks. v2 uses a single CIM/PowerShell call that returns JSON, so it works on any Windows locale, needs no admin rights for most facts, and runs in one process instead of five.
-
 ## Quick start
 
 ```bat
@@ -65,10 +61,6 @@ python -m mypy winsysinfo
 ```
 
 CI runs the same commands on `windows-latest` for Python 3.11 and 3.13, including a live probe smoke test.
-
-## Migrating from v1
-
-`windows_system_info_collector.py` was removed. Use `python -m winsysinfo` (or the `.bat`) instead. The default text report contains the same sections plus CPU/memory/GPU, a health summary and redaction.
 
 ## License
 
