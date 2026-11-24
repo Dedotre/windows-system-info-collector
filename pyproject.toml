@@ -18,7 +18,7 @@ dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
 winsysinfo = "winsysinfo.cli:main"
 
 [tool.setuptools]
-packages = ["winsysinfo"]
+packages = ["winsysinfo", "winsysinfo.render"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
