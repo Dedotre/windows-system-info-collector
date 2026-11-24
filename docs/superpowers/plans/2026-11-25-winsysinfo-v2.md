@@ -1678,7 +1678,7 @@ def test_text_contains_health_and_sections():
 
 
 def test_text_marks_redaction():
-    out = render.render(_report(redacted=True), "text")
+    out = render.render(redact.apply(_report()), "text")
     assert "redacted" in out.lower()
     assert "REDACTED-HOST" in out
 
