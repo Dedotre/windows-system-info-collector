@@ -1,42 +1,75 @@
-# Windows System Info Collector
+# Windows System Info Collector (winsysinfo)
 
-A simple Python script that collects basic Windows system information and saves it to a text file.
+Collect Windows hardware/OS/security facts, get a 0–100 health score, and export a report as text, JSON, Markdown or a self-contained HTML page. No external dependencies — just Python 3.11+ and the PowerShell that ships with Windows.
 
-## How to Use
-1. Ensure Python 3.x is installed on your Windows machine
-2. Download `windows_system_info_collector.py`
-3. Double-click the file OR run `python windows_system_info_collector.py` in Command Prompt
-4. A timestamped report file (like `system_info_report_20260611_144804.txt`) will be created
-5. Open the .txt file to view your system information
+## Why this rewrite
 
-## or
-1. dowload the Release and run the .bat file
+The v1 script scraped `wmic` and `ipconfig` text. `wmic` is gone from Windows 11 24H2+, `ipconfig` output is localized, and most failures were swallowed by bare `except:` blocks. v2 uses a single CIM/PowerShell call that returns JSON, so it works on any Windows locale, needs no admin rights for most facts, and runs in one process instead of five.
 
-## Example Output
+## Quick start
+
+```bat
+git clone https://github.com/Dedotre/windows-system-info-collector.git
+cd windows-system-info-collector
+python -m winsysinfo
 ```
-WINDOWS SYSTEM INFORMATION
-==========================
 
-Timestamp: 2026-06-11 14:47:58
+Or install it as a command:
 
---- SYSTEM ---
-OS:          Windows 11 (Professional)
-Version:     11
-Build:       10.0.26100
-Architecture:64bit
-Computer:    YOUR-PC-NAME
-
---- DISK ---
-C:\ [NTFS] 853.3GB/929.4GB used (91.8%)
-
---- NETWORK ---
-Interface:   YOUR-PC-NAME
-IP:          192.168.0.5
-Gateway:     192.168.0.1
-
---- SECURITY ---
-TPM:         Present, v2.0, Ready
-Hotfixes:    3 installed (KB5034441, KB5035849, KB5036892)
-
-==========================
+```bat
+pip install .
+winsysinfo --format text,json,md,html --out reports
 ```
+
+Double-clicking `run_system_info_collector.bat` still works.
+
+## Options
+
+| Flag | Meaning |
+|---|---|
+| `--format text,json,md,html` | Output formats (default `text`). Multiple formats write multiple files. |
+| `--out DIR` | Directory for reports (default: current directory). |
+| `--include-sensitive` | Disable redaction of hostname, serials, MACs and IPs. |
+| `-q`, `--quiet` | Do not print the report to stdout. |
+| `--verbose` | Print collector warnings to stderr. |
+| `--version` | Print version. |
+
+Exit codes: `0` success, `1` completed with warnings, `2` fatal (non-Windows, bad format, unwritable directory).
+
+## Privacy
+
+Reports are **redacted by default**: hostname becomes `REDACTED-HOST`, serials become `REDACTED-SERIAL`, MACs become `XX:XX:XX:XX:XX:XX`, and the last IPv4 octet is zeroed. Use `--include-sensitive` only for your own machine. JSON reports carry `"redacted": true/false`.
+
+## Health score
+
+Each rule emits at most one check (`pass`/`warn`/`fail`/`info`); failures cost 20 points, warnings 8. Rules: disk free space, RAM size, TPM presence/version, Secure Boot, Defender AV + real-time protection + signature age, hotfix freshness (60 days), BitLocker (info only), uptime (info only). The score is heuristic — it is not a security audit.
+
+## What gets collected
+
+OS/build/edition, uptime, CPU, RAM modules, GPUs, fixed disks, network adapters (IPv4, gateway, MAC, DHCP), BIOS/board version + serial, TPM, Secure Boot, Defender, BitLocker, hotfixes, battery. Values that need elevation (TPM details, BitLocker) render as `unavailable (…)` instead of failing the run.
+
+## Requirements
+
+- Windows 10/11
+- Python 3.11+
+- Windows PowerShell 5.1 (present by default); PowerShell 7 works too
+
+## Development
+
+```bat
+python -m pip install -e ".[dev]"
+python -m pytest
+python -m ruff check .
+python -m ruff format --check .
+python -m mypy winsysinfo
+```
+
+CI runs the same commands on `windows-latest` for Python 3.11 and 3.13, including a live probe smoke test.
+
+## Migrating from v1
+
+`windows_system_info_collector.py` was removed. Use `python -m winsysinfo` (or the `.bat`) instead. The default text report contains the same sections plus CPU/memory/GPU, a health summary and redaction.
+
+## License
+
+MIT
