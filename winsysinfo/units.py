@@ -23,3 +23,7 @@ def percent_used(total: int, free: int) -> float:
     if total <= 0:
         return 0.0
     return round((total - free) / total * 100, 1)
+
+
+def format_days(value: int) -> str:
+    return f"{value} day" if value == 1 else f"{value} days"

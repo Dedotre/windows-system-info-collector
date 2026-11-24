@@ -1236,7 +1236,7 @@ def test_tpm_1_2_warns():
     assert _status(scored, "tpm") == "warn"
 
 
-def test_defender_disabled_fails_and_realtime_off_fails():
+def test_defender_disabled_fails_and_skips_realtime():
     report = _report()
     security = dataclasses.replace(
         report.security,
@@ -1244,6 +1244,17 @@ def test_defender_disabled_fails_and_realtime_off_fails():
     )
     scored = _evaluate(dataclasses.replace(report, security=security))
     assert _status(scored, "defender_av") == "fail"
+    assert _status(scored, "defender_realtime") is None
+
+
+def test_defender_realtime_off_fails():
+    report = _report()
+    security = dataclasses.replace(
+        report.security,
+        defender=models.DefenderInfo(av_enabled=True, realtime_enabled=False, signature_age_days=1),
+    )
+    scored = _evaluate(dataclasses.replace(report, security=security))
+    assert _status(scored, "defender_av") == "pass"
     assert _status(scored, "defender_realtime") == "fail"
 
 
@@ -1472,7 +1483,7 @@ def evaluate(report: models.SystemReport) -> tuple[tuple[models.Check, ...], int
 - [ ] **Step 4: Run tests and verify they pass**
 
 Run: `python -m pytest tests/test_health.py -q`
-Expected: `12 passed`.
+Expected: `13 passed`.
 
 - [ ] **Step 5: Commit**
 

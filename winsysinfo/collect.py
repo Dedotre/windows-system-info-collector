@@ -136,7 +136,7 @@ def _disk_infos(raw: dict[str, Any]) -> tuple[models.DiskInfo, ...]:
 
 
 def _fallback_disks() -> tuple[models.DiskInfo, ...]:
-    kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+    kernel32 = ctypes.windll.kernel32
     buffer = ctypes.create_unicode_buffer(1024)
     if not kernel32.GetLogicalDriveStringsW(1024, buffer):
         return ()
@@ -199,7 +199,8 @@ def _bios_info(raw: dict[str, Any]) -> models.BiosInfo | None:
     bios = raw.get("bios")
     if not isinstance(bios, dict):
         return None
-    board = raw.get("board") if isinstance(raw.get("board"), dict) else {}
+    board_raw = raw.get("board")
+    board = board_raw if isinstance(board_raw, dict) else {}
     return models.BiosInfo(
         vendor=_text(bios.get("Manufacturer"), "Unknown"),
         board=_text(board.get("Product"), "Unknown"),

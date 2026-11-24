@@ -1,4 +1,4 @@
-from winsysinfo.units import format_bytes, percent_used
+from winsysinfo.units import format_bytes, format_days, percent_used
 
 
 def test_format_bytes_zero_and_negative():
@@ -22,3 +22,9 @@ def test_percent_used():
     assert percent_used(100, 25) == 75.0
     assert percent_used(0, 0) == 0.0
     assert percent_used(3, 3) == 0.0
+
+
+def test_format_days_pluralises():
+    assert format_days(0) == "0 days"
+    assert format_days(1) == "1 day"
+    assert format_days(2) == "2 days"
