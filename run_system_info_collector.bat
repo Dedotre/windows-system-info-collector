@@ -1,2 +1,3 @@
 @echo off
-python windows_system_info_collector.py
+python -m winsysinfo %*
+if errorlevel 2 pause
