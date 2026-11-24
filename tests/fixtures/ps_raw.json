@@ -1,0 +1,44 @@
+{
+  "os": {
+    "Caption": "Microsoft Windows 11 Pro",
+    "Version": "10.0.26200",
+    "BuildNumber": "26200",
+    "OSArchitecture": "64-bit",
+    "TotalVisibleMemorySize": 16777216,
+    "FreePhysicalMemory": 8388608,
+    "InstallDate": "2025-03-01",
+    "LastBootUpTime": "2026-11-20T08:00:00+04:00"
+  },
+  "cpu": {"Name": "AMD Ryzen 7 5800X 8-Core Processor", "NumberOfCores": 8, "NumberOfLogicalProcessors": 16, "MaxClockSpeed": 3800},
+  "ram": [
+    {"Capacity": 8589934592, "Speed": 3200, "Manufacturer": "Corsair", "PartNumber": "CMK16GX4M2B3200C16"},
+    {"Capacity": 8589934592, "Speed": 3200, "Manufacturer": "Corsair", "PartNumber": "CMK16GX4M2B3200C16"}
+  ],
+  "gpu": [{"Name": "NVIDIA GeForce RTX 3070", "AdapterRAM": 8589934592, "DriverVersion": "31.0.15.3623"}],
+  "disks": [{"DeviceID": "C:", "FileSystem": "NTFS", "Size": 998000000000, "FreeSpace": 120000000000}],
+  "net": [
+    {
+      "Description": "Intel(R) Wi-Fi 6 AX200",
+      "IPAddress": ["192.168.0.42", "fe80::1"],
+      "DefaultIPGateway": ["192.168.0.1"],
+      "MACAddress": "AA:BB:CC:DD:EE:FF",
+      "DHCPEnabled": true
+    }
+  ],
+  "bios": {"Manufacturer": "American Megatrends Inc.", "SMBIOSBIOSVersion": "1.2.3", "SerialNumber": "SN-BIOS-123", "ReleaseDate": "2024-05-01"},
+  "board": {"Manufacturer": "ASUSTeK COMPUTER INC.", "Product": "ROG STRIX B550-F"},
+  "tpm": {"SpecVersion": "2.0", "ManufacturerVersion": "7.63", "IsEnabled_InitialValue": true, "IsActivated_InitialValue": true},
+  "tpm_registry_present": true,
+  "tpm_reason": null,
+  "secure_boot": true,
+  "secure_boot_reason": null,
+  "defender": {"av": true, "realtime": true, "signature_age_days": 1},
+  "defender_reason": null,
+  "bitlocker": {"status": "FullyDecrypted", "protection": "Off"},
+  "bitlocker_reason": null,
+  "hotfixes": [
+    {"HotFixID": "KB5063878", "InstalledOn": "2026-10-14"},
+    {"HotFixID": "KB5062660", "InstalledOn": "2026-09-10"}
+  ],
+  "battery": null
+}

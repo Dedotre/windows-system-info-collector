@@ -459,7 +459,7 @@ git commit -m "feat: add frozen report data model"
 - Create: `tests/test_probe.py`
 
 **Interfaces:**
-- Produces: `probe.ProbeResult(data: dict[str, Any] | None, error: str | None)`; `probe.parse_probe_output(stdout: str, returncode: int = 0, stderr: str = "") -> ProbeResult`; `probe.run_probe(timeout: int = 60) -> ProbeResult`. The probe emits keys `os, cpu, ram, gpu, disks, net, bios, board, hotfixes, battery, tpm, tpm_registry_present, tpm_reason, secure_boot, secure_boot_reason, defender, defender_reason, bitlocker, bitlocker_reason` — Task 4 reads exactly these.
+- Produces: `probe.ProbeResult(data: dict[str, Any] | None, error: str | None)`; `probe.parse_probe_output(stdout: str, returncode: int = 0, stderr: str = "") -> ProbeResult`; `probe.build_command() -> tuple[str, ...]`; `probe.run_probe(timeout: int = 60) -> ProbeResult`. The probe emits keys `os, cpu, ram, gpu, disks, net, bios, board, hotfixes, battery, tpm, tpm_registry_present, tpm_reason, secure_boot, secure_boot_reason, defender, defender_reason, bitlocker, bitlocker_reason` — Task 4 reads exactly these.
 
 - [ ] **Step 1: Write the fixture**
 
@@ -648,13 +648,19 @@ $battery = Get-CimInstance Win32_Battery | Select-Object -First 1 -Property Esti
 } | ConvertTo-Json -Depth 6 -Compress
 """
 
-_CMD = ("powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", "-")
+# `-Command -` silently drops output when stdin is a pipe (verified), so the script travels base64-encoded.
+_CMD_PREFIX = ("powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand")
 
 
 @dataclass(frozen=True)
 class ProbeResult:
     data: dict[str, Any] | None
     error: str | None
+
+
+def build_command() -> tuple[str, ...]:
+    encoded = base64.b64encode(PS_SCRIPT.encode("utf-16-le")).decode("ascii")
+    return (*_CMD_PREFIX, encoded)
 
 
 def parse_probe_output(stdout: str, returncode: int = 0, stderr: str = "") -> ProbeResult:
@@ -676,8 +682,7 @@ def parse_probe_output(stdout: str, returncode: int = 0, stderr: str = "") -> Pr
 def run_probe(timeout: int = 60) -> ProbeResult:
     try:
         proc = subprocess.run(
-            _CMD,
-            input=PS_SCRIPT,
+            build_command(),
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -1277,6 +1282,14 @@ def test_score_never_negative():
     assert _evaluate(report).health_score == 0
 
 
+def test_secure_boot_unavailable_is_info():
+    report = _report()
+    security = dataclasses.replace(report.security, secure_boot=None, secure_boot_reason="Access was denied")
+    scored = _evaluate(dataclasses.replace(report, security=security))
+    assert _status(scored, "secure_boot") == "info"
+    assert scored.health_score == 100
+
+
 def test_bitlocker_off_is_info_only():
     report = _report()
     security = dataclasses.replace(report.security, bitlocker=models.BitLockerInfo("FullyDecrypted", "Off"))
@@ -1363,8 +1376,16 @@ def _tpm_check(report: models.SystemReport) -> models.Check | None:
 def _secure_boot_check(report: models.SystemReport) -> models.Check | None:
     if report.security.secure_boot is True:
         return _check("secure_boot", "pass", "Secure Boot", "Enabled", "No action needed.")
-    reason = report.security.secure_boot_reason or "unsupported or disabled"
-    return _check("secure_boot", "warn", "Secure Boot", reason, "Enable Secure Boot in UEFI settings.")
+    if report.security.secure_boot is False:
+        return _check("secure_boot", "warn", "Secure Boot", "Disabled", "Enable Secure Boot in UEFI settings.")
+    reason = report.security.secure_boot_reason or "not reported"
+    return _check(
+        "secure_boot",
+        "info",
+        "Secure Boot",
+        f"Status unavailable ({reason})",
+        "Run elevated to confirm Secure Boot state.",
+    )
 
 
 def _defender_av_check(report: models.SystemReport) -> models.Check | None:
@@ -1451,7 +1472,7 @@ def evaluate(report: models.SystemReport) -> tuple[tuple[models.Check, ...], int
 - [ ] **Step 4: Run tests and verify they pass**
 
 Run: `python -m pytest tests/test_health.py -q`
-Expected: `11 passed`.
+Expected: `12 passed`.
 
 - [ ] **Step 5: Commit**
 

@@ -110,7 +110,7 @@ One PowerShell script; per-section `try { … } catch { $null }` so one denied s
 - `wmic` → missing (so remove it entirely).
 - `Get-CimInstance Win32_QuickFixEngineering` → 4 items (works non-elevated).
 - `Get-CimInstance -Namespace root/cimv2/Security/MicrosoftTpm Win32_Tpm` → `Access denied` non-elevated → TPM details are `null`, `present` inferred from registry key `HKLM\SYSTEM\CurrentControlSet\Services\TPM`.
-- `Confirm-SecureBootUEFI` throws on legacy BIOS → `null`.
+- `Confirm-SecureBootUEFI` throws on legacy BIOS and without elevation (`Access was denied`, confirmed non-elevated) → `null` with a reason.
 - `Get-MpComputerStatus` may be absent (Server / third-party AV) → `null`.
 - `Get-BitLockerVolume` may require elevation → `null`.
 - `Get-CimInstance Win32_Battery` → `null` on desktops.
@@ -128,7 +128,8 @@ Statuses deduct points; each rule emits at most one check, floor at 0, cap at 10
 | `defender_av` | AV disabled | fail | −20 |
 | `defender_realtime` | real-time protection off (when Defender present) | fail | −20 |
 | `defender_signatures` | signature age > 7 days | warn | −8 |
-| `secure_boot` | Secure Boot off / unsupported | warn | −8 |
+| `secure_boot` | Secure Boot off | warn | −8 |
+| | status unavailable (needs elevation) | info | 0 |
 | `tpm` | Win11 and TPM absent | fail | −20 |
 | | TPM present, version < 2.0 | warn | −8 |
 | `ram` | total < 4 GB | fail | −20 |
