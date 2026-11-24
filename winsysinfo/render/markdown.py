@@ -80,14 +80,14 @@ def render(report: SystemReport) -> str:
     if report.disks:
         lines += ["", "## Disks", ""]
         lines += _table(
-            ["Mount", "Filesystem", "Used", "Total", "Free %"],
+            ["Mount", "Filesystem", "Used", "Total", "Used %"],
             [
                 [
                     disk.mount,
                     disk.filesystem,
                     units.format_bytes(disk.total_bytes - disk.free_bytes),
                     units.format_bytes(disk.total_bytes),
-                    f"{round(100 - disk.percent_used, 1)}%",
+                    f"{disk.percent_used}%",
                 ]
                 for disk in report.disks
             ],

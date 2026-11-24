@@ -21,7 +21,7 @@ def _check(check_id: str, status: str, title: str, detail: str, fix: str) -> mod
 def _disk_check(report: models.SystemReport) -> models.Check | None:
     if not report.disks:
         return None
-    worst = min(report.disks, key=lambda disk: 100 - disk.percent_used)
+    worst = max(report.disks, key=lambda disk: disk.percent_used)
     free_pct = round(100 - worst.percent_used, 1)
     if free_pct < 5:
         status = "fail"
