@@ -1598,6 +1598,7 @@ git commit -m "feat: redact identity fields by default"
 - Create: `winsysinfo/render/markdown.py`
 - Create: `winsysinfo/render/html.py`
 - Create: `tests/test_render.py`
+- Modify: `pyproject.toml` — set `packages = ["winsysinfo", "winsysinfo.render"]`
 
 **Interfaces:**
 - Consumes: `models.SystemReport`, `units.*`.

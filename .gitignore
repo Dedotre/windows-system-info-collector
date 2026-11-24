@@ -1,6 +1,24 @@
-# Ignore all generated system report files
+# Generated reports
 system_info_report_*.txt
+system_info_report_*.json
+system_info_report_*.md
+system_info_report_*.html
+reports/
+smoke/
 
-# Optional: Also ignore any other temporary files you might create
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Misc
 *.log
 temp/
