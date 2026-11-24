@@ -17,7 +17,7 @@ pip install .
 winsysinfo --format text,json,md,html --out reports
 ```
 
-Double-clicking `run_system_info_collector.bat` still works.
+You can also double-click `run_system_info_collector.bat`.
 
 ## Options
 
