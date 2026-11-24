@@ -31,9 +31,24 @@ def _minimal_report() -> models.SystemReport:
 def test_to_dict_contains_every_key():
     data = _minimal_report().to_dict()
     expected = {
-        "schema_version", "generated_at", "hostname", "os", "cpu", "memory", "gpus", "disks",
-        "network", "bios", "security", "hotfixes", "battery", "uptime_seconds", "checks",
-        "health_score", "redacted", "errors",
+        "schema_version",
+        "generated_at",
+        "hostname",
+        "os",
+        "cpu",
+        "memory",
+        "gpus",
+        "disks",
+        "network",
+        "bios",
+        "security",
+        "hotfixes",
+        "battery",
+        "uptime_seconds",
+        "checks",
+        "health_score",
+        "redacted",
+        "errors",
     }
     assert expected <= set(data)
     assert data["os"]["name"] == "Windows 11"
